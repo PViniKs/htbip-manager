@@ -1,0 +1,7 @@
+build.sh
+pkg_build/
+usr/
+DEBIAN/
+push.sh
+*.deb
+.DS_Store

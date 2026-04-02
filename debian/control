@@ -1,0 +1,10 @@
+Package: htbip
+Version: 1.0.2
+Section: utils
+Priority: optional
+Architecture: all
+Maintainer: pviniks <contato@pviniks.com>
+Depends: bash, coreutils, grep, sed, sudo, iputils-ping
+Description: /etc/hosts manager for Hack The Box labs.
+ Interactive tool for IP mapping and HTB domains,
+ with auto backup and dynamic vhosts support.
