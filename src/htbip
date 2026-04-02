@@ -23,8 +23,8 @@ DEFAULT_DOMAINS=(
 	"blog.inlanefreight.htb"
 	"support.inlanefreight.local"
 	"support.inlanefreight.htb"
-	"costumer.inlanefreight.local"
-	"costumer.inlanefreight.htb"
+	"customer.inlanefreight.local"
+	"customer.inlanefreight.htb"
     "app.inlanefreight.local"
     "app.inlanefreight.htb"
     "dev.inlanefreight.local"
@@ -93,7 +93,8 @@ show_help() {
     echo -e "\n    UTILITIES:"
     echo "      -p, --ping          Test connectivity of IPs in the section."
     echo "      -b, --backup        Create a manual backup of /etc/hosts."
-    echo "      --edit-conf         Edit the default domains configuration file."
+    echo "      -ec, --edit-conf    Edit the default domains configuration file."
+	echo "      -rc, --reset-conf   Reset domains.conf to script defaults."
     echo "      -h, --help          Show this help menu."
     echo -e "\n  =====================================\n"
 }
@@ -105,6 +106,7 @@ if [[ $# -eq 0 ]]; then show_help; exit 0; fi
 # Commands that don't need sudo/backup immediately
 case "$1" in
     --edit-conf) ${EDITOR:-nano} "$DOMAINS_FILE"; exit 0 ;;
+	--reset-conf) printf "%s\n" "${DEFAULT_DOMAINS[@]}" > "$DOMAINS_FILE"; echo "🔄 Configuration reset to code defaults."; exit 0 ;;
     -d|--defaults) printf "  - %s\n" "${DOMAINS[@]}"; exit 0 ;;
     -h|--help) show_help; exit 0 ;;
 esac
