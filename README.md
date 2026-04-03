@@ -57,6 +57,7 @@ Add specific domains for a single IP that are not in your default list:
 - **Connectivity Test (`-p`, `--ping`):** Ping all IPs currently saved in the HTB section to check if they are online.
 - **Manual Backup (`-b`, `--backup`):** Create an instant safety copy of your hosts file.
 - **Edit Defaults (`--edit-conf`):** Modify your permanent list of default domains.
+- **Reset to Defaults (`--reset-conf`):** Reset your permanent list to default.
 
 ## 🛡 Security & Best Practices
 HTBIP uses `sudo` granularly. It will only prompt for your password when it actually needs to write to `/etc/hosts`. The automatic backup function ensures that you can always restore your original system state if any `sed` operation fails.
