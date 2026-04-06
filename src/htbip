@@ -8,7 +8,7 @@
 
 # --- Path Configurations ---
 HOSTS_FILE="/etc/hosts"
-CONFIG_DIR="$HOME/.config/htbip"
+CONFIG_DIR="/home/$(logname)/.config/htbip"
 DOMAINS_FILE="$CONFIG_DIR/domains.conf"
 START_MARKER="# IPs HTB - BEGIN"
 END_MARKER="# IPs HTB - END"
@@ -157,16 +157,16 @@ case "$1" in
                 -e|--choose)
                     echo "Select hosts separated by SPACE (e.g., 1 2 15):"
                     for i in "${!DOMAINS[@]}"; do 
-                        printf "%3d) %s\n" "$((i+1))" "${DOMAINS[$i]}"
-                        done
-                        read -p "Input: " choices
-                        # Converte a entrada em uma array baseada em espaços
-                        for choice in $choices; do
-                            idx=$(( choice - 1 ))
-                            if [[ $idx -ge 0 && $idx -lt ${#DOMAINS[@]} ]]; then
-                                SELECTED_DOMAINS+=("${DOMAINS[$idx]}")
-                            fi
-                        done
+                        printf "%2d) %s\n" "$((i+1))" "${DOMAINS[$i]}"
+                    done
+                    read -p "Input: " choices
+                    # Converte a entrada em uma array baseada em espaços
+                    for choice in $choices; do
+                        idx=$(( choice - 1 ))
+                        if [[ $idx -ge 0 && $idx -lt ${#DOMAINS[@]} ]]; then
+                            SELECTED_DOMAINS+=("${DOMAINS[$idx]}")
+                        fi
+                    done
                     shift ;;
                 *) shift ;;
             esac
