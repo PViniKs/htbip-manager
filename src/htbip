@@ -113,8 +113,8 @@ if [[ $# -eq 0 ]]; then show_help; exit 0; fi
 
 # Commands that don't need sudo/backup immediately
 case "$1" in
-    --edit-conf) ${EDITOR:-nano} "$DOMAINS_FILE"; exit 0 ;;
-	--reset-conf) printf "%s\n" "${DEFAULT_DOMAINS[@]}" > "$DOMAINS_FILE"; echo "🔄 Configuration reset to code defaults."; exit 0 ;;
+    -ec|--edit-conf) ${EDITOR:-nano} "$DOMAINS_FILE"; exit 0 ;;
+	-rc|--reset-conf) printf "%s\n" "${DEFAULT_DOMAINS[@]}" > "$DOMAINS_FILE"; echo "🔄 Configuration reset to code defaults."; exit 0 ;;
     -d|--defaults) printf "  - %s\n" "${DOMAINS[@]}"; exit 0 ;;
     -h|--help) show_help; exit 0 ;;
 esac
