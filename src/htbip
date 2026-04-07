@@ -71,21 +71,22 @@ show_help() {
     echo -e "\n  ====== 🚀 HTBIP MANAGER - HELP ======\n"
     echo "    Usage: htbip <IP> [options]"
     echo -e "\n    MAIN OPTIONS:"
-    echo "      <IP>                Adds the IP with all default domains."
-    echo "      -e, --choose        Interactive menu to select domains."
-    echo "      -d, --defaults      List all domains configured as default."
+    echo "      <IP>                  Adds the IP with all default domains."
+    echo "      -e, --choose          Interactive menu to select domains."
+    echo "      -d, --defaults        List all domains configured as default."
     echo "      -u, --url \"doms\"    Add custom domains for this specific IP."
     echo -e "\n    MANAGEMENT:"
-    echo "      -l, --list          List ACTIVE hosts in the HTB section."
-    echo "      -c, --clear         Clear ALL hosts from the HTB section."
-    echo "      -r, --remove <IP>   Remove a specific IP from the section."
-    echo "      -o, --open          Open the hosts file in nano (sudo)."
+    echo "      -l, --list			  List ACTIVE hosts in the HTB section."
+	echo "      -es, --export-scope   Export active domains and IPs to a .txt file."
+    echo "      -c, --clear           Clear ALL hosts from the HTB section."
+    echo "      -r, --remove <IP>     Remove a specific IP from the section."
+    echo "      -o, --open            Open the hosts file in nano (sudo)."
     echo -e "\n    UTILITIES:"
-    echo "      -p, --ping          Test connectivity of IPs in the section."
-    echo "      -b, --backup        Create a manual backup of /etc/hosts."
-    echo "      -ec, --edit-conf    Edit the default domains configuration file."
-	echo "      -rc, --reset-conf   Reset domains.conf to script defaults."
-    echo "      -h, --help          Show this help menu."
+    echo "      -p, --ping            Test connectivity of IPs in the section."
+    echo "      -b, --backup          Create a manual backup of /etc/hosts."
+    echo "      -ec, --edit-conf      Edit the default domains configuration file."
+	echo "      -rc, --reset-conf     Reset domains.conf to script defaults."
+    echo "      -h, --help            Show this help menu."
     echo -e "\n  =====================================\n"
 }
 
@@ -95,6 +96,23 @@ if [[ $# -eq 0 ]]; then show_help; exit 0; fi
 
 # Commands that don't need sudo/backup immediately
 case "$1" in
+	-es|--export-scope)
+        # Define o nome do arquivo com a data e hora atual
+        TIMESTAMP=$(date +%Y%m%d%H%M)
+        OUTPUT_FILE="scope_list_${TIMESTAMP}.txt"
+
+        # get content
+        # extract hosts (2nd column)
+        # extract ips   (1st column)
+        # get rid of dupes and save into file
+
+        {
+            sed -n "/$START_MARKER/,/$END_MARKER/p" "$HOSTS_FILE" | grep -v "HTB -" | awk '{print $2}'
+            sed -n "/$START_MARKER/,/$END_MARKER/p" "$HOSTS_FILE" | grep -v "HTB -" | awk '{print $1}'
+        } | sort -u > "$OUTPUT_FILE"
+
+        echo "📄 Scope exported to: $OUTPUT_FILE"
+        exit 0 ;;
     -ec|--edit-conf)
         ${EDITOR:-nano} "$DOMAINS_FILE"
         exit 0 ;;
