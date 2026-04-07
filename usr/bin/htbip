@@ -8,48 +8,60 @@
 
 # --- Path Configurations ---
 HOSTS_FILE="/etc/hosts"
-CONFIG_DIR="/home/$(logname)/.config/htbip"
+CONFIG_DIR="$HOME/.config/htbip"
 DOMAINS_FILE="$CONFIG_DIR/domains.conf"
 START_MARKER="# IPs HTB - BEGIN"
 END_MARKER="# IPs HTB - END"
 
+# --- Default Domains ---
+DEFAULT_DOMAINS=(
+	"pvk.local"
+    "pvk.htb"
+    "htb.local"
+    "htb.htb"
+    "inlanefreight.local"
+    "inlanefreight.htb"
+	"blog.inlanefreight.local"
+	"blog.inlanefreight.htb"
+	"support.inlanefreight.local"
+	"support.inlanefreight.htb"
+	"customer.inlanefreight.local"
+	"customer.inlanefreight.htb"
+    "app.inlanefreight.local"
+    "app.inlanefreight.htb"
+    "dev.inlanefreight.local"
+    "dev.inlanefreight.htb"
+	"my.inlanefreight.local"
+	"my.inlanefreight.htb"
+	"www.inlanefreight.local"
+	"www.inlanefreight.htb"
+	"ns1.inlanefreight.local"
+	"ns1.inlanefreight.htb"
+	"ns2.inlanefreight.local"
+	"ns2.inlanefreight.htb"
+	"ns3.inlanefreight.local"
+	"ns3.inlanefreight.htb"
+	"mail.inlanefreight.local"
+	"mail.inlanefreight.htb"
+	"corp.inlanefreight.local"
+	"corp.inlanefreight.htb"
+	"dc01.inlanefreight.local"
+	"dc01.inlanefreight.htb"
+	"sql01.inlanefreight.local"
+	"sql01.inlanefreight.htb"
+	"ilfreight.local"
+	"ilfreight.htb"
+	"hackthebox.local"
+	"hackthebox.htb"
+)
+
 # --- Initialization ---
 mkdir -p "$CONFIG_DIR"
-REMOTE_URL="https://raw.githubusercontent.com/PViniKs/htbip-manager/refs/heads/main/hosts.txt"
-
-# Função interna para baixar e processar a lista do GitHub
-sync_from_github() {
-    echo "🌐 Synchronizing domains from GitHub..."
-    local RAW_DATA=$(curl -s "$REMOTE_URL")
-
-    if [ -z "$RAW_DATA" ]; then
-        echo "⚠️ Warning: Could not reach GitHub. Using local domains.conf if available."
-        return 1
-    fi
-
-    # Limpa o arquivo e reconstrói com as extensões
-    > "$DOMAINS_FILE"
-    while IFS= read -r line; do
-        line=$(echo "$line" | xargs)
-        [[ -z "$line" ]] && continue
-        echo "${line}.local" >> "$DOMAINS_FILE"
-        echo "${line}.htb" >> "$DOMAINS_FILE"
-    done <<< "$RAW_DATA"
-    return 0
-}
-
-# SÓ executa o download se o arquivo NÃO existir localmente 
 if [ ! -f "$DOMAINS_FILE" ]; then
-    sync_from_github
+    printf "%s\n" "${DEFAULT_DOMAINS[@]}" > "$DOMAINS_FILE"
 fi
 
-# Carrega os domínios para a memória (DOMAINS) 
-if [ -f "$DOMAINS_FILE" ]; then
-    mapfile -t DOMAINS < "$DOMAINS_FILE"
-else
-    echo "❌ Error: Domains file not found and GitHub unreachable."
-    exit 1
-fi
+mapfile -t DOMAINS < "$DOMAINS_FILE"
 
 # --- Utility Functions ---
 
@@ -83,8 +95,7 @@ show_help() {
     echo -e "\n    UTILITIES:"
     echo "      -p, --ping          Test connectivity of IPs in the section."
     echo "      -b, --backup        Create a manual backup of /etc/hosts."
-    echo "      -ec, --edit-conf    Edit the default domains configuration file."
-	echo "      -rc, --reset-conf   Reset domains.conf to script defaults."
+    echo "      --edit-conf         Edit the default domains configuration file."
     echo "      -h, --help          Show this help menu."
     echo -e "\n  =====================================\n"
 }
@@ -95,15 +106,7 @@ if [[ $# -eq 0 ]]; then show_help; exit 0; fi
 
 # Commands that don't need sudo/backup immediately
 case "$1" in
-    -ec|--edit-conf)
-        ${EDITOR:-nano} "$DOMAINS_FILE"
-        exit 0 ;;
-    -rc|--reset-conf)
-        rm -f "$DOMAINS_FILE"
-        sync_from_github
-        mapfile -t DOMAINS < "$DOMAINS_FILE" # Atualiza a memória após o reset 
-        echo "🔄 Configuration reset and resynced from GitHub."
-        exit 0 ;;
+    --edit-conf) ${EDITOR:-nano} "$DOMAINS_FILE"; exit 0 ;;
     -d|--defaults) printf "  - %s\n" "${DOMAINS[@]}"; exit 0 ;;
     -h|--help) show_help; exit 0 ;;
 esac
@@ -112,13 +115,13 @@ esac
 case "$1" in
     -c|--clear|-b|--backup|-r|--remove|-o|--open|-u|--url|*)
         check_sudo "$@"
-		do_backup
+        [[ "$1" != "-o" && "$1" != "--open" ]] && do_backup
         ;;
 esac
 
 case "$1" in
-    -o|--open)
-        sudo nano "$HOSTS_FILE"
+    -o|--open) 
+        sudo nano "$HOSTS_FILE" 
         exit 0 ;;
 
     -c|--clear)
@@ -143,29 +146,9 @@ case "$1" in
         done
         exit 0 ;;
 
-    -b|--backup)
-        echo "✅ Manual backup completed."
-        exit 0 ;;
+    -b|--backup) echo "✅ Manual backup completed."; exit 0 ;;
 
-	*)
-    
-    # Se o primeiro argumento for -u, entramos no modo interativo total
-    if [[ "$1" == "-u" || "$1" == "--url" ]]; then
-        read -p "🌐 Enter Target IP: " IP
-        if [[ ! $IP =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
-            echo "❌ Error: Invalid IP address."; exit 1
-        fi
-        
-        SELECTED_DOMAINS=()
-        echo "📝 Enter URLs one by one (Type 'ok' or press ENTER to finish):"
-        while true; do
-            read -p "> " url_input
-            # Para se digitar 'ok' ou apenas der Enter no vazio
-            [[ "$url_input" == "ok" || -z "$url_input" ]] && break
-            SELECTED_DOMAINS+=("$url_input")
-        done
-    else
-        # Comportamento padrão: htbip <IP> [options]
+    *)
         IP="$1"
         if [[ ! $IP =~ ^[0-9]{1,3}(\.[0-9]{1,3}){3}$ ]]; then
             echo "❌ Error: Invalid IP address."; exit 1
@@ -176,35 +159,28 @@ case "$1" in
         
         while [[ $# -gt 0 ]]; do
             case $1 in
-                -u|--url)
-                    shift
-                    # Se houver argumentos após o -u, captura-os
-                    while [[ $# -gt 0 && ! $1 =~ ^- ]]; do
-                        SELECTED_DOMAINS+=("$1")
-                        shift
-                    done ;;
+                -u|--url) IFS=' ' read -r -a SELECTED_DOMAINS <<< "$2"; shift 2 ;;
                 -e|--choose)
-                    echo "Select hosts separated by SPACE (e.g., 1 2 15):"
-                    for i in "${!DOMAINS[@]}"; do printf "%2d) %s\n" "$((i+1))" "${DOMAINS[$i]}"; done
-                    read -p "Input: " choices
-                    for choice in $choices; do
-                        idx=$(( choice - 1 ))
+                    echo "Select hosts (e.g., 125):"
+                    for i in "${!DOMAINS[@]}"; do echo "$((i+1))) ${DOMAINS[$i]}"; done
+                    read -p "Input: " choice
+                    for (( i=0; i<${#choice}; i++ )); do
+                        idx=$(( ${choice:$i:1} - 1 ))
                         [[ $idx -ge 0 && $idx -lt ${#DOMAINS[@]} ]] && SELECTED_DOMAINS+=("${DOMAINS[$idx]}")
                     done
                     shift ;;
                 *) shift ;;
             esac
         done
-    fi
 
-    # Se nenhuma URL foi selecionada, usa o padrão do domains.conf
-    if [ ${#SELECTED_DOMAINS[@]} -eq 0 ]; then SELECTED_DOMAINS=("${DOMAINS[@]}"); fi
+        # If no specific domains selected via -u or -e, use defaults
+        if [ ${#SELECTED_DOMAINS[@]} -eq 0 ]; then SELECTED_DOMAINS=("${DOMAINS[@]}"); fi
 
-    # Processo de Mapeamento no /etc/hosts
-    for dom in "${SELECTED_DOMAINS[@]}"; do
-        sudo sed -i "/$START_MARKER/,/$END_MARKER/{/[[:space:]]$dom$/d}" "$HOSTS_FILE"
-        sudo sed -i "/$END_MARKER/i $IP\t$dom" "$HOSTS_FILE"
-    done
-    echo "✅ Mapping completed for $IP"
-    ;;
+        # Mapping process
+        for dom in "${SELECTED_DOMAINS[@]}"; do
+            sudo sed -i "/$START_MARKER/,/$END_MARKER/{/[[:space:]]$dom$/d}" "$HOSTS_FILE"
+            sudo sed -i "/$END_MARKER/i $IP\t$dom" "$HOSTS_FILE"
+        done
+        echo "✅ Mapping completed for $IP"
+        ;;
 esac
