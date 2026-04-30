@@ -29,6 +29,7 @@ jenkins.inlanefreight
 legacy.inlanefreight
 mail.inlanefreight
 meet.inlanefreight
+monitoring.inlanefreight
 my.inlanefreight
 ns1.inlanefreight
 ns2.inlanefreight
